@@ -1,4 +1,4 @@
---a.ii)10 consultas variadas de acordo com requisitos da aplicação, com justificativa semântica e conforme critérios seguintes:
+-- 2.a.ii) 10 consultas variadas de acordo com requisitos da aplicação, com justificativa semântica e conforme critérios seguintes:
 
 	-- 1 consulta com uma tabela usando operadores básicos de filtro (e.g., IN,between, is null, etc).
 

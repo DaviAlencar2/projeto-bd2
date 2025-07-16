@@ -1,4 +1,4 @@
--- a.i) Tabelas e constraints (PK, FK, UNIQUE, campos que não podem ter valores nulos, checks de validação) de acordo com as regras de negócio do projeto.
+-- 2.a.i) Tabelas e constraints (PK, FK, UNIQUE, campos que não podem ter valores nulos, checks de validação) de acordo com as regras de negócio do projeto.
 
 CREATE TYPE tipo_usuario AS ENUM ('comum', 'admin');
 CREATE TYPE tipo_conteudo AS ENUM ('video', 'playlist', 'podcast', 'artigo', 'site', 'curso');
@@ -39,12 +39,14 @@ CREATE TABLE roteiro (
     usuario_id	INT NOT NULL REFERENCES usuario(id)
 );
 
+
 -- N:N 
 CREATE TABLE conteudo_tag (
     conteudo_id 		INT REFERENCES conteudo(id) ON DELETE CASCADE,
     tag_id 				INT REFERENCES tag(id) ON DELETE CASCADE,
     PRIMARY KEY (conteudo_id, tag_id)
 );
+
 
 -- N:N
 CREATE TABLE roteiro_conteudo (
@@ -59,7 +61,7 @@ CREATE TABLE avaliacao (
     usuario_id 			INT REFERENCES usuario(id) ON DELETE CASCADE,
     conteudo_id 		INT REFERENCES conteudo(id) ON DELETE CASCADE,
     nota 				INT CHECK (nota BETWEEN 0 AND 10),
-    comentario 			TEXT,
+    comentario 			TEXT NOT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (usuario_id, conteudo_id)
 );
