@@ -51,20 +51,20 @@
 	-- 2 consultas que usem subqueries.
 	
 		-- conteudos que foram criados por admins
-	SELECT c.id as conteudo_id, c.titulo as titulo_conteudo, c.usuario_id
-	from conteudo c
-	where c.usuario_id in (select id from usuario where usuario.tipo = 'admin');
+		SELECT c.id as conteudo_id, c.titulo as titulo_conteudo, c.usuario_id
+		from conteudo c
+		where c.usuario_id in (select id from usuario where usuario.tipo = 'admin');
 
 		-- roteiros que possuem pelo menos 1 conteudo pago
-	SELECT r.id, r.titulo, r.usuario_id 
-	from roteiro r
-	where r.id in (
-		select r.id 
+		SELECT r.id, r.titulo, r.usuario_id 
 		from roteiro r
-		inner join roteiro_conteudo rc
-		on rc.roteiro_id = r.id
-		inner join conteudo c
-		on c.id = rc.conteudo_id
-		where c.pago = True
-		);
+		where r.id in (
+			select r.id 
+			from roteiro r
+			inner join roteiro_conteudo rc
+			on rc.roteiro_id = r.id
+			inner join conteudo c
+			on c.id = rc.conteudo_id
+			where c.pago = True
+			);
 	
