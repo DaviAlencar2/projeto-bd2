@@ -36,7 +36,8 @@ CREATE TABLE roteiro (
     descricao	TEXT,
     publico 	BOOLEAN NOT NULL DEFAULT TRUE,
 	criado_em	TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id	INT NOT NULL REFERENCES usuario(id)
+    usuario_id	INT NOT NULL REFERENCES usuario(id),
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -64,4 +65,11 @@ CREATE TABLE avaliacao (
     comentario 			TEXT NOT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (usuario_id, conteudo_id)
+);
+
+CREATE TABLE auditoria (
+    id          SERIAL PRIMARY KEY,
+    operaco     VARCHAR(50) NOT NULL,
+    tabela      VARCHAR(50) NOT NULL,
+    data        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
