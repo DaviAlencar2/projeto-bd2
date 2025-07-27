@@ -69,7 +69,7 @@ CREATE TABLE avaliacao (
 
 CREATE TABLE auditoria (
     id          SERIAL PRIMARY KEY,
-    operaco     VARCHAR(50) NOT NULL,
+    operacao     VARCHAR(50) NOT NULL,
     tabela      VARCHAR(50) NOT NULL,
     data        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

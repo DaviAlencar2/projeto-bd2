@@ -28,7 +28,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER auditoria_usuario_trigger
 AFTER INSERT OR UPDATE OR DELETE ON usuario
 FOR EACH ROW
-EXECUTE FUNCTION auditoria();
+EXECUTE FUNCTION auditoria_usuario();
 
 CREATE OR REPLACE FUNCTION auditoria_conteudo()
 RETURNS TRIGGER AS $$
@@ -42,4 +42,4 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER auditoria_conteudo_trigger
 AFTER INSERT OR UPDATE OR DELETE ON conteudo
 FOR EACH ROW
-EXECUTE FUNCTION auditoria();
+EXECUTE FUNCTION auditoria_conteudo();
