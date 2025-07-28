@@ -1,3 +1,6 @@
+--2.f) Trigger: 
+-- Criar 3 triggers diferentes com justificativa semântica, conforme requisitos.
+
 -- Atualizar roteiro apois insert em roteiro conteudo
 
 CREATE OR REPLACE FUNCTION atualiza_roteiro()
@@ -14,8 +17,8 @@ AFTER INSERT ON roteiro_conteudo
 FOR EACH ROW
 EXECUTE function atualiza_roteiro();
 
--- Auditoria 
 
+-- Auditoria usuario
 CREATE OR REPLACE FUNCTION auditoria_usuario()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -30,6 +33,8 @@ AFTER INSERT OR UPDATE OR DELETE ON usuario
 FOR EACH ROW
 EXECUTE FUNCTION auditoria_usuario();
 
+
+-- Auditoria Conteudo
 CREATE OR REPLACE FUNCTION auditoria_conteudo()
 RETURNS TRIGGER AS $$
 BEGIN

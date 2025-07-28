@@ -1,0 +1,1 @@
+-- Todos os códigos da pasta SQL estão escritos nesse arquivo, como foi pedido nos requisitos do projeto.

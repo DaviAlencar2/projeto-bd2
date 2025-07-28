@@ -12,6 +12,7 @@
             on c.id = rc.conteudo_id
             where c.pago = True
 		);
+        
         -- Podemos reescrever ela usando JOIN, retirando a subconsulta, deixando mais simples e possivelmente mais eficiente, e aplciando o DISTINCT que foi ignorado na primeira vez.
             SELECT DISTINCT r.id, r.titulo, r.usuario_id 
             FROM roteiro r
