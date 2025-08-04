@@ -65,3 +65,36 @@
         id, titulo, tipo, link_externo, descricao, count(id) as tags_em_comum
     END;
     $$ LANGUAGE plpgsql;
+
+    -- 1 procedure com justificativa semântica.  
+
+    CREATE OR REPLACE PROCEDURE adiciona_conteudo_e_relaciona_roteiro(
+        p_titulo VARCHAR(100),
+        p_tipo tipo_conteudo,
+        p_link_externo VARCHAR(255),
+        p_descricao TEXT,
+        p_pago BOOLEAN,
+        p_usuario_id INTEGER,
+        p_roteiro_id INTEGER,
+        p_ordem INTEGER
+    ) LANGUAGE plpgsql AS $$
+    BEGIN
+
+        IF p_usuario_id NOT IN (SELECT id FROM usuario) THEN
+            RAISE EXCEPTION 'Usuário ID inválido';
+        END IF;
+        
+        if p_roteiro_id NOT IN (SELECT id FROM roteiro) THEN
+            RAISE EXCEPTION 'Roteiro ID inválido';
+        END IF;
+
+        INSERT INTO conteudo (titulo, tipo, link_externo, descricao, pago, usuario_id)
+        VALUES (p_titulo, p_tipo, p_link_externo, p_descricao, p_pago, p_usuario_id);
+
+        INSERT INTO roteiro_conteudo (roteiro_id, conteudo_id, ordem)
+        VALUES (p_roteiro_id, currval('conteudo_id_seq'), p_ordem);    
+
+        EXCEPTION 
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Erro ao adicionar conteúdo e relacionar ao roteiro: %', SQLERRM;  
+    END;

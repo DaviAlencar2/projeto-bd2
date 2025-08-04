@@ -19,3 +19,23 @@
             INNER JOIN roteiro_conteudo rc ON r.id = rc.roteiro_id
             INNER JOIN conteudo c ON rc.conteudo_id = c.id
             WHERE c.pago = TRUE;
+    
+    -- 2° Consulta reescrita: Exibe conteúdos com estatísticas de avaliação (média e total), facilitando análise de engajamento.
+
+        -- Consulta original:
+            SELECT c.id, c.titulo, c.tipo, a.nota, a.comentario
+            from conteudo c
+            left join avaliacao a
+            on c.id = a.conteudo_id
+            order by c.id;
+
+        SELECT 
+            c.id, 
+            c.titulo, 
+            c.tipo, 
+            COUNT(a.nota) AS total_avaliacoes,
+            AVG(a.nota) AS media_nota
+        FROM conteudo c
+        LEFT JOIN avaliacao a ON c.id = a.conteudo_id
+        GROUP BY c.id, c.titulo, c.tipo
+        ORDER BY c.id;

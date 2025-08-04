@@ -40,7 +40,7 @@
         -- ⚠️Possível reescrita
         SELECT c.id, c.titulo, c.tipo, a.nota, a.comentario
         from conteudo c
-        left outer join avaliacao a
+        left join avaliacao a
         on c.id = a.conteudo_id
         order by c.id;
 
