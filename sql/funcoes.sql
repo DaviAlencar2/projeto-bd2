@@ -78,6 +78,8 @@
         p_roteiro_id INTEGER,
         p_ordem INTEGER
     ) LANGUAGE plpgsql AS $$
+    DECLARE
+        conteudo_novo_id INTEGER;
     BEGIN
 
         IF p_usuario_id NOT IN (SELECT id FROM usuario) THEN
@@ -88,11 +90,12 @@
             RAISE EXCEPTION 'Roteiro ID inválido';
         END IF;
 
-        INSERT INTO conteudo (titulo, tipo, link_externo, descricao, pago, usuario_id)
-        VALUES (p_titulo, p_tipo, p_link_externo, p_descricao, p_pago, p_usuario_id);
+        INSERT INTO conteudo (titulo, tipo, link_externo, descricao, pago, usuario_id) 
+        VALUES (p_titulo, p_tipo, p_link_externo, p_descricao, p_pago, p_usuario_id)
+        RETURNING id INTO conteudo_novo_id;
 
         INSERT INTO roteiro_conteudo (roteiro_id, conteudo_id, ordem)
-        VALUES (p_roteiro_id, currval('conteudo_id_seq'), p_ordem);    
+        VALUES (p_roteiro_id, conteudo_novo_id, p_ordem);  
 
         EXCEPTION 
         WHEN OTHERS THEN

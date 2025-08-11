@@ -15,14 +15,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER roteiro_conteudo_insert
 AFTER INSERT ON roteiro_conteudo
 FOR EACH ROW
-EXECUTE function atualiza_roteiro();
+EXECUTE FUNCTION atualiza_roteiro();
 
 
 -- Auditoria usuario
 CREATE OR REPLACE FUNCTION auditoria_usuario()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO auditoria (operaco, tabela, data)
+    INSERT INTO auditoria (operacao, tabela, data)
     VALUES (TG_OP,'usuario',now());
     RETURN NEW;
 END;
@@ -38,7 +38,7 @@ EXECUTE FUNCTION auditoria_usuario();
 CREATE OR REPLACE FUNCTION auditoria_conteudo()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO auditoria (operaco, tabela, data)
+    INSERT INTO auditoria (operacao, tabela, data)
     VALUES (TG_OP,'conteudo',now());
     RETURN NEW;
 END;
