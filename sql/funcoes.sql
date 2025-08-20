@@ -14,7 +14,7 @@
         RETURN QUERY
         SELECT 
             COUNT(c.id) AS total_conteudos,
-            COUNT(a.id) AS total_avaliacoes_recebidas,
+            COUNT(a.usuario_id) AS total_avaliacoes_recebidas
             AVG(a.nota) AS media_avaliacoes_recebidas
         FROM 
             conteudo c
@@ -44,11 +44,13 @@
     END;
     $$ LANGUAGE plpgsql;
 
+
+
     -- Busca conteudos relacionados com as tags de um outro conteudo
     -- A função recebe o id de um conteudo que tem várias tags e busca conteudos que
     -- partilham de tags parecidas, limitando o resultado ao valor do segundo parametro da funcao
 
-    CREATE OR REPLACE function verificar_roteiro_completo(
+    CREATE OR REPLACE function buscar_conteudos_similares(
         conteudo_id INTEGER,
         limite INTEGER
     ) RETURNS TABLE(
@@ -74,6 +76,8 @@
     LIMIT limite;
     END;
     $$ LANGUAGE plpgsql;
+
+
 
     -- 1 procedure com justificativa semântica.  
 

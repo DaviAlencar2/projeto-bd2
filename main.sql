@@ -79,7 +79,8 @@ INSERT INTO usuario (nome, hash_senha, tipo, email) VALUES
 ('Bruno', 'hash2', 'admin', 'bruno@email.com'),
 ('Carla', 'hash3', 'comum', 'carla@email.com'),
 ('Daniel', 'hash4', 'comum', 'daniel@email.com'),
-('Eva', 'hash5', 'admin', 'eva@email.com');
+('Eva', 'hash5', 'admin', 'eva@email.com'),
+('Davi Leite', 'hash6', 'comum', 'davi.leite@email.com');
 
 -- Conteúdos
 INSERT INTO conteudo (titulo, tipo, link_externo, descricao, pago, usuario_id) VALUES
@@ -127,7 +128,8 @@ INSERT INTO avaliacao (usuario_id, conteudo_id, nota, comentario) VALUES
 (3, 2, 10, 'Excelente curso'),
 (4, 3, 7, 'Bom artigo'),
 (5, 4, 6, 'Poderia ser mais detalhado'),
-(1, 5, 8, 'Podcast interessante');
+(1, 5, 8, 'Podcast interessante'),
+(6, 4, 9, 'Conteúdo excelente para aprender Python!');
 
 -- =========================
 -- 2.a.ii) 10 Consultas variadas
@@ -221,18 +223,23 @@ CREATE OR REPLACE VIEW criacoes_usuario AS
         on r.usuario_id = u.id
     group by u.id;
 
-CREATE OR REPLACE VIEW top_tags AS
-    SELECT t.nome, round(AVG(a.nota),2)
-    from tag t
-    inner join conteudo_tag ct
-    on ct.tag_id = t.id
-    inner join conteudo c
-    on ct.conteudo_id = c.id
-    inner join avaliacao a
-    on a.conteudo_id = c.id
-    group by t.nome
-    order by avg(a.nota) desc
-    LIMIT 3;
+CREATE OR REPLACE VIEW informacoes_conteudo AS
+SELECT
+    c.id,
+    c.titulo,
+    c.tipo,
+    c.link_externo,
+    c.descricao,
+    c.pago,
+    u.nome AS autor,
+    COUNT(a.nota) AS total_avaliacoes,
+    ROUND(AVG(a.nota), 2) AS media_nota,
+    COUNT(DISTINCT rc.roteiro_id) AS total_roteiros
+FROM conteudo c
+JOIN usuario u ON c.usuario_id = u.id
+LEFT JOIN avaliacao a ON a.conteudo_id = c.id
+LEFT JOIN roteiro_conteudo rc ON rc.conteudo_id = c.id
+GROUP BY c.id, c.titulo, c.tipo, c.link_externo, c.descricao, c.pago, u.nome;
 
 -- =========================
 -- 2.c) Índices
@@ -301,14 +308,14 @@ BEGIN
     RETURN QUERY
     SELECT 
         COUNT(c.id) AS total_conteudos,
-        COUNT(a.id) AS total_avaliacoes_recebidas,
+        COUNT(a.usuario_id) AS total_avaliacoes_recebidas,
         AVG(a.nota) AS media_avaliacoes_recebidas
     FROM 
         conteudo c
     LEFT JOIN 
         avaliacao a ON c.id = a.conteudo_id
     WHERE 
-        c.usuario_id = usuario_id;
+        c.usuario_id = calcular_estatisticas_usuario.usuario_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -328,7 +335,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Função: buscar conteúdos com tags em comum
-CREATE OR REPLACE FUNCTION verificar_roteiro_completo(
+CREATE OR REPLACE FUNCTION buscar_conteudos_similares(
     conteudo_id INTEGER,
     limite INTEGER
 ) RETURNS TABLE(
@@ -346,9 +353,9 @@ SELECT
 FROM conteudo c
 JOIN conteudo_tag ct ON ct.conteudo_id = c.id
 WHERE ct.tag_id IN (
-    SELECT tag_id FROM conteudo_tag WHERE conteudo_id = verificar_roteiro_completo.conteudo_id
+    SELECT tag_id FROM conteudo_tag WHERE conteudo_id = buscar_conteudos_similares.conteudo_id
 )
-AND c.id <> verificar_roteiro_completo.conteudo_id
+AND c.id <> buscar_conteudos_similares.conteudo_id
 GROUP BY c.id, c.titulo, c.tipo, c.link_externo, c.descricao
 ORDER BY tags_em_comum DESC
 LIMIT limite;
@@ -389,6 +396,7 @@ BEGIN
     WHEN OTHERS THEN
         RAISE NOTICE 'Erro ao adicionar conteúdo e relacionar ao roteiro: %', SQLERRM;  
 END;
+$$;
 
 -- =========================
 -- 2.f) Triggers
@@ -409,20 +417,22 @@ AFTER INSERT ON roteiro_conteudo
 FOR EACH ROW
 EXECUTE FUNCTION atualiza_roteiro();
 
--- Auditoria usuario
-CREATE OR REPLACE FUNCTION auditoria_usuario()
+-- Validar avaliação
+CREATE OR REPLACE FUNCTION validar_avaliacao()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO auditoria (operacao, tabela, data)
-    VALUES (TG_OP,'usuario',now());
+    -- Impedir que usuário avalie seu próprio conteúdo
+    IF (SELECT usuario_id FROM conteudo WHERE id = NEW.conteudo_id) = NEW.usuario_id THEN
+        RAISE EXCEPTION 'Usuários não podem avaliar seu próprio conteúdo';
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER auditoria_usuario_trigger
-AFTER INSERT OR UPDATE OR DELETE ON usuario
+CREATE OR REPLACE TRIGGER validar_avaliacao_trigger
+BEFORE INSERT ON avaliacao
 FOR EACH ROW
-EXECUTE FUNCTION auditoria_usuario();
+EXECUTE FUNCTION validar_avaliacao();
 
 -- Auditoria Conteudo
 CREATE OR REPLACE FUNCTION auditoria_conteudo()
