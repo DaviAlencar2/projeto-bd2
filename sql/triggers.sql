@@ -1,7 +1,7 @@
 --2.f) Trigger: 
 -- Criar 3 triggers diferentes com justificativa semântica, conforme requisitos.
 
--- Atualizar roteiro apois insert em roteiro conteudo
+-- Atualizar roteiro após insert em roteiro conteudo.
 
 CREATE OR REPLACE FUNCTION atualiza_roteiro()
 RETURNS TRIGGER AS $$
@@ -18,20 +18,21 @@ FOR EACH ROW
 EXECUTE FUNCTION atualiza_roteiro();
 
 
--- Auditoria usuario
-CREATE OR REPLACE FUNCTION auditoria_usuario()
+CREATE OR REPLACE FUNCTION validar_avaliacao()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO auditoria (operacao, tabela, data)
-    VALUES (TG_OP,'usuario',now());
+    -- Impedir que usuário avalie seu próprio conteúdo
+    IF (SELECT usuario_id FROM conteudo WHERE id = NEW.conteudo_id) = NEW.usuario_id THEN
+        RAISE EXCEPTION 'Usuários não podem avaliar seu próprio conteúdo';
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER auditoria_usuario_trigger
-AFTER INSERT OR UPDATE OR DELETE ON usuario
+CREATE OR REPLACE TRIGGER validar_avaliacao_trigger
+BEFORE INSERT ON avaliacao
 FOR EACH ROW
-EXECUTE FUNCTION auditoria_usuario();
+EXECUTE FUNCTION validar_avaliacao();
 
 
 -- Auditoria Conteudo

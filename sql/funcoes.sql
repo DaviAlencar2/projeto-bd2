@@ -44,8 +44,8 @@
     END;
     $$ LANGUAGE plpgsql;
 
-    -- Busca conteudos relacionados com as tags de um outro conteudo, por exemplo, 
-    -- a funçao recebe o id de um conteudo que tem varias tags e busca conteudos que
+    -- Busca conteudos relacionados com as tags de um outro conteudo
+    -- A função recebe o id de um conteudo que tem várias tags e busca conteudos que
     -- partilham de tags parecidas, limitando o resultado ao valor do segundo parametro da funcao
 
     CREATE OR REPLACE function verificar_roteiro_completo(
@@ -62,7 +62,16 @@
     BEGIN
     RETURN QUERY
     SELECT 
-        id, titulo, tipo, link_externo, descricao, count(id) as tags_em_comum
+        c.id, c.titulo, c.tipo, c.link_externo, c.descricao, COUNT(*) as tags_em_comum
+    FROM conteudo c
+    JOIN conteudo_tag ct ON ct.conteudo_id = c.id
+    WHERE ct.tag_id IN (
+        SELECT tag_id FROM conteudo_tag WHERE conteudo_id = verificar_roteiro_completo.conteudo_id
+    )
+    AND c.id <> verificar_roteiro_completo.conteudo_id
+    GROUP BY c.id, c.titulo, c.tipo, c.link_externo, c.descricao
+    ORDER BY tags_em_comum DESC
+    LIMIT limite;
     END;
     $$ LANGUAGE plpgsql;
 

@@ -27,20 +27,26 @@
 		group by u.id;
 
 
-	-- Para saber as top 3 tags que tem melhor média de avaliação em relação aos conteúdos.
-	CREATE OR REPLACE VIEW top_tags AS
-		SELECT t.nome, round(AVG(a.nota),2)
-		from tag t
-		inner join conteudo_tag ct
-		on ct.tag_id = t.id
-		inner join conteudo c
-		on ct.conteudo_id = c.id
-		inner join avaliacao a
-		on a.conteudo_id = c.id
-		group by t.nome
-		order by avg(a.nota) desc
-		LIMIT 3;
-	
- 					
+
+	-- Visão robusta: informações detalhadas sobre cada conteúdo, incluindo estatísticas de avaliação e autor
+	-- ...existing code...
+
+	CREATE OR REPLACE VIEW informacoes_conteudo AS
+	SELECT
+		c.id,
+		c.titulo,
+		c.tipo,
+		c.link_externo,
+		c.descricao,
+		c.pago,
+		u.nome AS autor,
+		COUNT(a.nota) AS total_avaliacoes,
+		ROUND(AVG(a.nota), 2) AS media_nota,
+		COUNT(DISTINCT rc.roteiro_id) AS total_roteiros
+	FROM conteudo c
+	JOIN usuario u ON c.usuario_id = u.id
+	LEFT JOIN avaliacao a ON a.conteudo_id = c.id
+	LEFT JOIN roteiro_conteudo rc ON rc.conteudo_id = c.id
+	GROUP BY c.id, c.titulo, c.tipo, c.link_externo, c.descricao, c.pago, u.nome;
 
 	

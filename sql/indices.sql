@@ -4,4 +4,4 @@ CREATE INDEX idx_conteudo_usuario_id ON conteudo(usuario_id);
 
 CREATE INDEX idx_avaliacao_conteudo_id ON avaliacao(conteudo_id);
 
-CREATE INDEX idx_conteudo_pago ON conteudo(pago) 
+CREATE INDEX idx_conteudo_pago ON conteudo(pago);

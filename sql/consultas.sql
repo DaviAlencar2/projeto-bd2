@@ -11,11 +11,13 @@
 
         -- Localiza conteúdos relacionados ao PostgreSQL e seus respectivos autores,
         -- permitindo identificar especialistas nesse tema ou direcionar usuários interessados.
-        SELECT * from usuario
-        inner join conteudo
-        on conteudo.usuario_id = usuario.id
-        where conteudo.titulo like '%postgres%';
-        
+        SELECT *
+        FROM usuario u
+        INNER JOIN conteudo c ON c.usuario_id = u.id
+        INNER JOIN conteudo_tag ct ON ct.conteudo_id = c.id
+        INNER JOIN tag t ON t.id = ct.tag_id
+        WHERE LOWER(t.nome) LIKE '%postgres%';
+                
         -- Busca todos os conteúdos marcados com a tag 'SQL', facilitando a organização de materiais
         -- para estudo específico desta linguagem e direcionamento para usuários interessados neste tópico.
         SELECT * from conteudo
