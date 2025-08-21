@@ -68,11 +68,3 @@ CREATE TABLE avaliacao (
     criado_em       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (usuario_id, conteudo_id)
 );
-
-
-CREATE TABLE auditoria (
-    id              SERIAL PRIMARY KEY,
-    operacao        VARCHAR(50) NOT NULL,
-    tabela          VARCHAR(50) NOT NULL,
-    data            TIMESTAMP NOT NULL
-);

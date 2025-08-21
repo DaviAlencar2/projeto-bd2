@@ -3,25 +3,25 @@
 -- 1 função com uso de `SUM`, `MAX`, `MIN`, `AVG` ou `COUNT`.
     -- Retorna estatísticas relacionas ao conteudo de um usuário específico.
 
-    CREATE OR REPLACE FUNCTION calcular_estatisticas_usuario (
-        usuario_id INTEGER
+   CREATE OR REPLACE FUNCTION calcular_estatisticas_usuario (
+    usuario_id INTEGER
     ) RETURNS TABLE (
-        total_conteudos INTEGER,
-        total_avaliacoes_recebidas INTEGER,
+        total_conteudos BIGINT,
+        total_avaliacoes_recebidas BIGINT,
         media_avaliacoes_recebidas NUMERIC
     ) AS $$
     BEGIN
         RETURN QUERY
         SELECT 
-            COUNT(c.id) AS total_conteudos,
-            COUNT(a.usuario_id) AS total_avaliacoes_recebidas
+            COUNT(DISTINCT c.id) AS total_conteudos,
+            COUNT(a.usuario_id) AS total_avaliacoes_recebidas,
             AVG(a.nota) AS media_avaliacoes_recebidas
         FROM 
             conteudo c
         LEFT JOIN 
             avaliacao a ON c.id = a.conteudo_id
         WHERE 
-            c.usuario_id = usuario_id;
+            c.usuario_id = calcular_estatisticas_usuario.usuario_id;
     END;
     $$ LANGUAGE plpgsql;
 
@@ -35,7 +35,7 @@
     ) RETURNS SETOF conteudo AS $$
     BEGIN
     RETURN QUERY
-    SELECT * from conteudo c
+    SELECT c.* from conteudo c
         JOIN conteudo_tag ct
         on ct.conteudo_id = c.id
         JOIN tag t
@@ -45,41 +45,36 @@
     $$ LANGUAGE plpgsql;
 
 
-
-    -- Busca conteudos relacionados com as tags de um outro conteudo
-    -- A função recebe o id de um conteudo que tem várias tags e busca conteudos que
-    -- partilham de tags parecidas, limitando o resultado ao valor do segundo parametro da funcao
-
-    CREATE OR REPLACE function buscar_conteudos_similares(
-        conteudo_id INTEGER,
-        limite INTEGER
-    ) RETURNS TABLE(
-        id INTEGER,
-        titulo VARCHAR(100),
-        tipo tipo_conteudo,
-        link_externo VARCHAR(255),
-        descricao TEXT,
-        tags_em_comum INTEGER
-    ) AS $$
+    -- 2 outras funções com justificativa semântica.
+    -- Função que verifica se um roteiro contém algum conteúdo pago
+    -- Retorna TRUE se o roteiro contém pelo menos um conteúdo pago, FALSE caso contrário
+    CREATE OR REPLACE FUNCTION roteiro_contem_conteudo_pago(
+        p_roteiro_id INTEGER
+    ) RETURNS BOOLEAN AS $$
+    DECLARE
+        contem_pago BOOLEAN;
     BEGIN
-    RETURN QUERY
-    SELECT 
-        c.id, c.titulo, c.tipo, c.link_externo, c.descricao, COUNT(*) as tags_em_comum
-    FROM conteudo c
-    JOIN conteudo_tag ct ON ct.conteudo_id = c.id
-    WHERE ct.tag_id IN (
-        SELECT tag_id FROM conteudo_tag WHERE conteudo_id = verificar_roteiro_completo.conteudo_id
-    )
-    AND c.id <> verificar_roteiro_completo.conteudo_id
-    GROUP BY c.id, c.titulo, c.tipo, c.link_externo, c.descricao
-    ORDER BY tags_em_comum DESC
-    LIMIT limite;
+        -- Verifica se o roteiro existe
+        IF NOT EXISTS (SELECT 1 FROM roteiro WHERE id = p_roteiro_id) THEN
+            RAISE EXCEPTION 'Roteiro ID % não existe', p_roteiro_id;
+        END IF;
+        
+        -- Verifica se o roteiro contém algum conteúdo pago
+        SELECT EXISTS (
+            SELECT 1
+            FROM roteiro_conteudo rc
+            JOIN conteudo c ON c.id = rc.conteudo_id
+            WHERE rc.roteiro_id = p_roteiro_id AND c.pago = TRUE
+        ) INTO contem_pago;
+        
+        RETURN contem_pago;
     END;
     $$ LANGUAGE plpgsql;
 
 
 
-    -- 1 procedure com justificativa semântica.  
+
+    -- 1 procedure com justificativa semântica( e tratamento de exceções).
 
     CREATE OR REPLACE PROCEDURE adiciona_conteudo_e_relaciona_roteiro(
         p_titulo VARCHAR(100),
@@ -95,7 +90,7 @@
         conteudo_novo_id INTEGER;
     BEGIN
 
-        IF p_usuario_id NOT IN (SELECT id FROM usuario) THEN
+        IF p_usuario_id NOT IN (SELECT id FROM usuario) THEN    
             RAISE EXCEPTION 'Usuário ID inválido';
         END IF;
         
@@ -114,3 +109,4 @@
         WHEN OTHERS THEN
             RAISE NOTICE 'Erro ao adicionar conteúdo e relacionar ao roteiro: %', SQLERRM;  
     END;
+    $$;

@@ -2,10 +2,26 @@
 
 -- 1 visão que permita inserção 
 
-	-- Não tenho um motivo muito bom para justificar a criação dessa view, apenas é um requisito obrigatório.
-	CREATE OR REPLACE VIEW criar_avaliacao AS
-	SELECT usuario_id, conteudo_id, nota, comentario
-	from avaliacao;
+	-- Facilita o registro assumindo que a maioria dos novos usuários será do tipo 'comum'
+	CREATE OR REPLACE VIEW usuario_comum AS
+    SELECT id, nome, email, hash_senha, tipo
+    FROM usuario
+    WHERE tipo = 'comum';
+
+	-- Trigger para automaticamente setar tipo como 'comum' ao inserir via view
+	CREATE OR REPLACE FUNCTION inserir_usuario_comum()
+	RETURNS TRIGGER AS $$
+	BEGIN
+		INSERT INTO usuario (nome, email, hash_senha, tipo)
+		VALUES (NEW.nome, NEW.email, NEW.hash_senha, 'comum');
+		RETURN NEW;
+	END;
+	$$ LANGUAGE plpgsql;
+
+	CREATE OR REPLACE TRIGGER usuario_comum_insert
+	INSTEAD OF INSERT ON usuario_comum
+	FOR EACH ROW
+	EXECUTE FUNCTION inserir_usuario_comum();
 
 
 -- 2 visões robustas (e.g., com vários joins) com justificativa semântica, de acordo com osrequisitos da aplicação.
@@ -27,10 +43,8 @@
 		group by u.id;
 
 
-
 	-- Visão robusta: informações detalhadas sobre cada conteúdo, incluindo estatísticas de avaliação e autor
-	-- ...existing code...
-
+	
 	CREATE OR REPLACE VIEW informacoes_conteudo AS
 	SELECT
 		c.id,

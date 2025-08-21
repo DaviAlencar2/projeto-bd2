@@ -29,6 +29,8 @@
             on c.id = a.conteudo_id
             order by c.id;
 
+
+        -- -- Podemos reescrever usando funções de agregação para obter estatísticas úteis em vez de linhas individuais por avaliação, tornando a consulta mais informativa e evitando duplicações de conteúdos.
         SELECT 
             c.id, 
             c.titulo, 

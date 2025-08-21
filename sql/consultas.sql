@@ -2,15 +2,15 @@
 
     -- 1 consulta com uma tabela usando operadores básicos de filtro (e.g., IN,between, is null, etc).
 
-        -- Identifica conteúdos sem descrição detalhada, útil para administradores localizarem 
-        -- materiais mais relevantes
+        -- Identifica conteúdos sem descrição, útil para administradores localizarem 
+        -- materiais que precisam de complementação ou revisão.
         SELECT * from conteudo WHERE descricao IS Null;
 
 
     -- 3 consultas com inner JOIN na cláusula FROM (pode ser self join, caso odomínio indique esse uso).
 
-        -- Localiza conteúdos relacionados ao PostgreSQL e seus respectivos autores,
-        -- permitindo identificar especialistas nesse tema ou direcionar usuários interessados.
+        -- Busca usuários que publicaram conteúdos com a tag que remeta ao postgreSQL,
+        -- facilitando a identificação de especialistas ou materiais relevantes sobre o tema.
         SELECT *
         FROM usuario u
         INNER JOIN conteudo c ON c.usuario_id = u.id
@@ -39,7 +39,6 @@
         
         -- Exibe todos os conteúdos e suas avaliações (se existirem), permitindo analisar 
         -- quais conteúdos estão sem avaliação e precisam de mais engajamento.
-        -- ⚠️Possível reescrita
         SELECT c.id, c.titulo, c.tipo, a.nota, a.comentario
         from conteudo c
         left join avaliacao a
@@ -84,6 +83,7 @@
         SELECT c.id as conteudo_id, c.titulo as titulo_conteudo, c.usuario_id
         from conteudo c
         where c.usuario_id in (select id from usuario where usuario.tipo = 'admin');
+
 
         -- Identifica roteiros que contêm ao menos um conteúdo pago, útil para informar
         -- aos usuários que determinadas trilhas de aprendizado requer algum investimento.
